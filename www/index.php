@@ -98,6 +98,7 @@ if(!method_exists($objController, $action)){
 }
 
 //Appel de la méthode
+session_start();
 $objController->$action();
 
 

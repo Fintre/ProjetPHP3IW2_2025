@@ -4,7 +4,7 @@ namespace App\Core;
 
 class DB{
     
-    private ?object $pdo = null;
+    protected ?object $pdo = null;
 
     public function __construct(){
         try{
@@ -24,5 +24,15 @@ class DB{
         
         return $query->fetch(\PDO::FETCH_ASSOC);
     }
+    public function findAll(): array
+    {
+        $sql = 'SELECT * FROM "' . $this->table . '" ORDER BY id DESC';
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 
 }

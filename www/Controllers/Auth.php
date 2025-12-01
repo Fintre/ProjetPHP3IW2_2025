@@ -29,7 +29,6 @@ class Auth
                 }
         }
 
-        // $db->getOneBy($email);
     }
 
     public function check_login($data){
@@ -54,6 +53,11 @@ class Auth
         }else{
             $user = $db->getOneBy(["email" => $email]);
             if($user["email"] === $email){
+                $_SESSION = [
+                        "id" => $user["id"],
+                        "username" => $user["username"],
+                        "email" => $user["email"]
+                    ];
                 $index = new Base();
                 $index->index($user);
             }
@@ -67,7 +71,7 @@ class Auth
 
     public function logout(): void
     {
-        die();
+        $_SESSION = [];
     }
 
     public function forgetPassword(){

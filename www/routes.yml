@@ -41,3 +41,15 @@
 /updatePassword:
   controller: Auth
   action: updatePassword
+
+/createPageForm:
+  controller: PageController
+  action: createForm
+
+/createPage:
+  controller: PageController
+  action: createPage
+
+/showPages:
+  controller: PageController
+  action: showPages
