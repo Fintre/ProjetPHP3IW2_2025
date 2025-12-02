@@ -148,11 +148,10 @@ class Auth
 
     public function updatePassword(){
         if($_SERVER["REQUEST_METHOD"] == "POST"){
-            var_dump($_POST);
                 if(
                     !empty($_POST['pwd']) &&
                     !empty($_POST['pwdConfirm']) &&
-                    count($_POST) == 2
+                    count($_POST) == 3
                 ){
                    if(strlen($_POST["pwd"]) < 8 ||
                     !preg_match('/[a-z]/', $_POST["pwd"] ) ||
@@ -166,7 +165,9 @@ class Auth
                         $errors[]="Votre mot de passe de confirmation ne correspond pas";
                     }
                     $user = new User();
-                    //FINIR REQUETE SQL UPDATE PASSWORD
+                    $user->updatePasswordEmail($_POST["email"],$_POST["pwd"]);
+                    header("Location: /loginForm");
+                    exit;
                 }
         }
     }
