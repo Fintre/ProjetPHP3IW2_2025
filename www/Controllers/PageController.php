@@ -25,14 +25,81 @@ class PageController
             "status"      => "draft",         
         ];
         $page->insert($data);
+        $this->showPages();
     }
 
     public function showPages():void {
         $page = new Page();
         $pages = $page->findAll();
         $render = new Render("showPages","frontoffice");
+        $render->assign("pages",$pages);
         $render->render();
-        // Finir show ensuite update et delete
     }
+
+    public function edit(){
+        if (empty($_GET['id'])) {
+            die("ID manquant");
+        }
+
+        $id = (int) $_GET['id'];
+
+        $pageModel = new Page();
+        $page = $pageModel->getOneBy(["id" => $id]);
+
+        if (!$page) {
+            http_response_code(404);
+            die("Page introuvable");
+        }
+
+        if ($page['user_id'] != $_SESSION['id']) {
+            http_response_code(403);
+            die("Accès interdit");
+    }
+
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        $data = [
+            "title" => $_POST["title"],
+            "description" => $_POST["description"],
+            "slug" => $_POST["slug"],
+            "status" => $_POST["status"]
+        ];
+
+        $pageModel->update($id, $data);
+        header("Location: /showPages");
+        exit;
+    }
+
+        $render = new Render("editPage", "backoffice");
+        $render->assign("page", $page);
+        $render->render();
+    }
+
+
+    public function delete(){
+        if (empty($_GET['id'])) {
+            die("ID manquant");
+        }
+
+        $id = (int) $_GET['id'];
+
+        $pageModel = new Page();
+        $page = $pageModel->getOneBy(["id" => $id]);
+
+
+        if (!$page) {
+            die("Page introuvable");
+        }
+
+        if ($page['user_id'] != $_SESSION['id']) {
+            http_response_code(403);
+            die("Accès interdit");
+        }
+
+        $pageModel->delete($id);
+        $this->showPages();
+    }
+
+
 
 }

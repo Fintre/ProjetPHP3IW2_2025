@@ -53,3 +53,11 @@
 /showPages:
   controller: PageController
   action: showPages
+
+/page/delete:
+  controller: PageController
+  action: delete
+
+/page/edit:
+  controller: PageController
+  action: edit
