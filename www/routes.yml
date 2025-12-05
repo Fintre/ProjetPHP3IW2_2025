@@ -61,3 +61,27 @@
 /page/edit:
   controller: PageController
   action: edit
+
+/users/list:
+  controller: UserController
+  action: list
+
+/users/create:
+  controller: UserController
+  action: createForm
+
+/users/store:
+  controller: UserController
+  action: create
+
+/users/edit:
+  controller: UserController
+  action: editForm
+
+/users/update:
+  controller: UserController
+  action: update
+
+/users/delete:
+  controller: UserController
+  action: delete
