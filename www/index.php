@@ -1,6 +1,9 @@
 <?php
 namespace App;
 
+use App\Core\Router;
+
+
 require __DIR__ . '/vendor/autoload.php';
 
 /*
@@ -47,8 +50,7 @@ spl_autoload_register(function ($class){
 
 
 
-
-
+// 1. Récupération et nettoyage de l'URI
 $uri = $_SERVER["REQUEST_URI"];
 $uriExploded = explode("?",$uri);
 if(is_array($uriExploded)){
@@ -57,48 +59,21 @@ if(is_array($uriExploded)){
 if(strlen($uri)>1){
     $uri = rtrim($uri, "/");
 }
+// À ce stade : $uri = "/ma-super-page"
 
-if(!file_exists("routes.yml")){
-    die("Le fichier de routing routes.yml n'existe pas");
-}
-$routes = yaml_parse_file("routes.yml");
-
-//Est-ce que l'uri existe sinon 404
-if(empty($routes[$uri])){
-    die("Page 404");
-}
-//Est ce que pour cette URI on a un controller et une action
-if(empty($routes[$uri]["controller"]) || empty($routes[$uri]["action"])){
-    die("Erreur, il n'y a aucun controller ou aucune action pour cette uri");
-}
-
-$controller = $routes[$uri]["controller"];
-$action = $routes[$uri]["action"];
-
-//Est ce que le fichier du controller existe
-if(!file_exists("Controllers/".$controller.".php")){
-    die("Erreur, le fichier du controller n'existe pas");
-}
-
-//Inclure le fichier controller
-include "Controllers/".$controller.".php";
-
-//Est ce que la class existe ?
-$controller = "App\\Controller\\".$controller;
-if(!class_exists($controller)){
-    die("Erreur, la class controller ".$controller." n'existe pas");
-}
-
-//Instance de la classe
-$objController = new $controller();
-
-//Est ce que la methode (action) existe ?
-if(!method_exists($objController, $action)){
-    die("Erreur, l'action ".$action." n'existe pas");
-}
-
-//Appel de la méthode
+// 2. Démarrer la session
 session_start();
-$objController->$action();
 
+// 3. Créer le router avec l'URI nettoyée
+$router = new Router($uri);
+// ↑ APPEL : Router->__construct("/ma-super-page")
 
+// 4. Charger les routes depuis le fichier YAML
+$router->loadRoutes("routes.yml");
+// ↑ APPEL : Router->loadRoutes("routes.yml")
+//   Cette fonction lit le fichier et stocke les routes dans $this->routes
+
+// 5. Dispatcher la route (lance tout le processus)
+$router->dispatch();
+// ↑ APPEL : Router->dispatch()
+//   C'est ICI que tout commence !

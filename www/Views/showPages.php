@@ -17,7 +17,7 @@
             Supprimer
             </a>
         <?php endif; ?>
-        <a href="/page<?= htmlspecialchars($page["slug"]) ?>">Voir la page</a>
+        <a href="/<?= htmlspecialchars($page["slug"]) ?>">Voir la page</a>
     </div>
 <?php endforeach; ?>
 

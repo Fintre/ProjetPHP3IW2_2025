@@ -24,6 +24,10 @@ class PageController
             "user_id"     => $_SESSION["id"],          
             "status"      => "draft",         
         ];
+
+        if($page->slugExists($data["slug"])){
+            die("slug existe déjà");
+        }
         $page->insert($data);
         $this->showPages();
     }
@@ -33,6 +37,22 @@ class PageController
         $pages = $page->findAll();
         $render = new Render("showPages","frontoffice");
         $render->assign("pages",$pages);
+        $render->render();
+    }
+
+    public function show(string $slug): void {
+        $pageModel = new Page();
+        $page = $pageModel->findBySlug($slug);
+        
+        if(!$page){
+            http_response_code(404);
+            die("Page non publiée");
+        }
+        
+        $render = new Render("page/show", "frontoffice");
+        $render->assign("page", $page);
+        $render->assign("title", $page->getTitle());
+        $render->assign("description", $page->getDescription());
         $render->render();
     }
 
@@ -53,7 +73,7 @@ class PageController
 
         if ($page['user_id'] != $_SESSION['id']) {
             http_response_code(403);
-            die("Accès interdit");
+            die("Accès interdit c'est pas ta page");
     }
 
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
