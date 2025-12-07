@@ -1,225 +1,77 @@
 <?php
 
-namespace App\Controllers;  
+namespace App\Controller;
+
 use App\Models\User;
-use App\Core\Render;
 
-class UserController{
-
-    public function list(): void {
+class UserController
+{
+    public function list()
+    {
         $userModel = new User();
-        $users = $userModel ->findAll();
+        $users = $userModel->findAll();
 
-        $render = new Render('userList', 'baskoffice');
-        $render -> assign('users', $users);
-        $render -> render();
+        echo "<pre>";
+        print_r($users);
+        echo "</pre>";
     }
 
-    public function createForm(): void {
-        $render = new Render('usersForm', 'baskoffice');
-        $render -> assign('mode', 'create');
-        $render -> render();
-    }
+    public function create()
+    {
+        $userModel = new User();
 
-    public function create(): void {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            HEADER('Location: /users/list');
-            exit;
-        }
-        $username = trim($_POST['username'] ?? '');
-        $$email = strtolower(trim($_POST['email'] ?? ''));
+        $username = $_POST['username'] ?? '';
+        $email    = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        $confirm = $_POST['password_confirm'] ?? '';
-        $isActive = isset($_POST['is_active']) ? true : false; 
+        $active   = isset($_POST['is_active']);
 
-        $errors =[];
-
-        if ($username === '') {
-            $errors[] = "Le nom d'utilisateur est obligatoire.";
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "L'email n'est pas valide.";
-        }
-
-        if (strlen($password) < 8 ||
-        !preg_match('/[a-z]/', $password) ||
-        !preg_match('/[A-Z]/', $password) ||
-        !preg_match('/[0-9]/', $password) 
-        ) {
-            $errors[] = "Le mot de passe doit faire au minimum 8 caractères avec minuscule, majuscule et chiffre.";
-        }
-
-        if ($password !== $confirm) {
-            $errors[] = "La confirmation du mot de passe ne correspond pas.";
-        }
-
-        $userModel = new User();
-        $existing = $userModel->getOneBy(['email => $email']);
-
-        if (!empty($existing)) {
-            $errors[]= "Cet email est déjà utilisé.";
-        }
-
-        if (!empty($errors)) {
-            $render = new Render('usersForm', 'backoffice');
-            $render->assign('mode', 'create');
-            $render->assign('errors', $errors);
-            $render->assign('old', [
-                'username' => $username,
-                'email'    => $email,
-                'is_active'=> $isActive,
-            ]);
-            $render->render();
-            return;
-        }
-
-        $token = bin2hex(random_bytes(16));
-
-        $data = [
+        $userModel->insert([
             'username'  => $username,
             'email'     => $email,
             'password'  => password_hash($password, PASSWORD_DEFAULT),
-            'is_active' => $isActive,
-            'token'     => $token,
-        ];
+            'is_active' => $active,
+            'token'     => bin2hex(random_bytes(16)),
+        ]);
 
-        $userModel->insert($data);
-
-        header('Location: /users/list');
-        exit;
+        echo "Utilisateur créé";
     }
 
-    public function editForm(): void
+    public function update()
     {
-        if (empty($_GET['id'])) {
-            die('ID manquant');
+        if (empty($_POST['id'])) {
+            die("ID manquant");
         }
 
-        $id = (int) $_GET['id'];
+        $id = (int)$_POST['id'];
 
-        $userModel = new User();
-        $user = $userModel->getOneBy(['id' => $id]);
-
-        if (!$user) {
-            http_response_code(404);
-            die('Utilisateur introuvable');
-        }
-
-        $render = new Render('usersForm', 'backoffice');
-        $render->assign('mode', 'edit');
-        $render->assign('user', $user);
-        $render->render();
-    }
-
-    public function update(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /users/list');
-            exit;
-        }
-
-        $id       = (int) ($_POST['id'] ?? 0);
-        $username = trim($_POST['username'] ?? '');
-        $email    = strtolower(trim($_POST['email'] ?? ''));
-        $isActive = isset($_POST['is_active']) ? true : false;
-        $password = $_POST['password'] ?? '';
-        $confirm  = $_POST['password_confirm'] ?? '';
-
-        $errors = [];
-
-        $userModel = new User();
-        $user = $userModel->getOneBy(['id' => $id]);
-
-        if (!$user) {
-            http_response_code(404);
-            die('Utilisateur introuvable');
-        }
-
-        if ($username === '') {
-            $errors[] = "Le nom d'utilisateur est obligatoire.";
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "L'email n'est pas valide.";
-        }
-
-        // si l'email change, vérifier qu'il n'est pas déjà utilisé
-        if ($email !== $user['email']) {
-            $existing = $userModel->getOneBy(['email' => $email]);
-            if (!empty($existing)) {
-                $errors[] = "Cet email est déjà utilisé.";
-            }
-        }
-
-        $dataUpdate = [
-            'username'  => $username,
-            'email'     => $email,
-            'is_active' => $isActive,
+        $data = [
+            'username'  => $_POST['username'] ?? '',
+            'email'     => $_POST['email'] ?? '',
+            'is_active' => isset($_POST['is_active']),
             'update_at' => date('Y-m-d H:i:s'),
         ];
 
-        // mot de passe optionnel
-        if ($password !== '') {
-            if (strlen($password) < 8 ||
-                !preg_match('/[a-z]/', $password) ||
-                !preg_match('/[A-Z]/', $password) ||
-                !preg_match('/[0-9]/', $password)
-            ) {
-                $errors[] = "Le mot de passe doit faire au minimum 8 caractères avec minuscule, majuscule et chiffre.";
-            }
-
-            if ($password !== $confirm) {
-                $errors[] = "La confirmation du mot de passe ne correspond pas.";
-            }
-
-            if (empty($errors)) {
-                $dataUpdate['password'] = password_hash($password, PASSWORD_DEFAULT);
-            }
+        if (!empty($_POST['password'])) {
+            $data['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
         }
-
-        if (!empty($errors)) {
-            $render = new Render('usersForm', 'backoffice');
-            $render->assign('mode', 'edit');
-            $render->assign('user', array_merge($user, [
-                'username'  => $username,
-                'email'     => $email,
-                'is_active' => $isActive,
-            ]));
-            $render->assign('errors', $errors);
-            $render->render();
-            return;
-        }
-
-        $userModel->update($id, $dataUpdate);
-
-        header('Location: /users/list');
-        exit;
-    }
-
-    public function delete(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /users/list');
-            exit;
-        }
-
-        if (empty($_POST['id'])) {
-            die('ID manquant');
-        }
-
-        $id = (int) $_POST['id'];
 
         $userModel = new User();
-        $user = $userModel->getOneBy(['id' => $id]);
+        $userModel->update($id, $data);
 
-        if (!$user) {
-            die('Utilisateur introuvable');
+        echo "Utilisateur mis à jour";
+    }
+
+    public function delete()
+    {
+        if (empty($_POST['id'])) {
+            die("ID manquant");
         }
 
+        $id = (int)$_POST['id'];
+
+        $userModel = new User();
         $userModel->delete($id);
 
-        header('Location: /users/list');
-        exit;
+        echo "Utilisateur supprimé";
     }
 }
