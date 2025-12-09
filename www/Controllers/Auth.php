@@ -32,7 +32,7 @@ class Auth
     }
 
     public function check_login($data){
-        $db = new User();
+        $user = new User();
         $email = strtolower(trim($data['email']));
 
         if(strlen($_POST["pwd"]) < 8 ||
@@ -50,8 +50,14 @@ class Auth
 
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
             $errors[]="Votre email n'est pas correct";
+        }
+
+        if(!empty($errors)){
+            $_SESSION['errors'] = $errors;
+            header('Location: /loginForm'); 
+            exit();
         }else{
-            $user = $db->getOneBy(["email" => $email]);
+            $user = $user->getOneBy(["email" => $email]);
             if($user["email"] === $email){
                 $_SESSION = [
                         "id" => $user["id"],
@@ -92,8 +98,8 @@ class Auth
                         $errors[]="Votre email n'est pas correct";
                     }else{
                         $user = $user->getOneBy(["email" => $email]);
-                        $token = $user['token'];
-                        if($user["email"] === $email){
+                        if($user && $user["email"] === $email){
+                            $token = $user['token'];
                             $phpmailer = new PHPMailer();
                             $activationLink = "http://localhost:8080/activation?email=".$email."&token=".$token;
                             try{
@@ -120,6 +126,11 @@ class Auth
                             }catch (Exception $e) {
                                 echo "Mailer Error: " . $phpmailer->ErrorInfo;
                             }
+                        }else{
+                        $errors[]="Votre email n'est pas correct";
+                        $_SESSION['errors'] = $errors;
+                        header('Location: /forgetPassword'); 
+                        exit();
                         }
                     }
 
@@ -151,6 +162,7 @@ class Auth
                 if(
                     !empty($_POST['pwd']) &&
                     !empty($_POST['pwdConfirm']) &&
+                    !empty($_POST['email']) &&
                     count($_POST) == 3
                 ){
                    if(strlen($_POST["pwd"]) < 8 ||
@@ -163,6 +175,12 @@ class Auth
 
                     if($_POST["pwd"] != $_POST["pwdConfirm"]){
                         $errors[]="Votre mot de passe de confirmation ne correspond pas";
+                    }
+                    if(!empty($errors)){
+                        $_SESSION['errors'] = $errors;
+                        $location = $_SERVER['HTTP_REFERER'];
+                        header('Location:' . $location); 
+                        exit();
                     }
                     $user = new User();
                     $user->updatePasswordEmail($_POST["email"],$_POST["pwd"]);

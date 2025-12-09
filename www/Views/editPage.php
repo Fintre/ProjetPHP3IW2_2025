@@ -19,3 +19,11 @@
     <button type="submit">Mettre à jour</button>
 
 </form>
+
+
+<?php if(isset($_SESSION['errors'])): ?>
+    <div class="errors">
+            <p><?= htmlspecialchars($_SESSION['errors']) ?></p>
+    </div>
+    <?php unset($_SESSION['errors']); // Nettoyer après affichage ?>
+<?php endif; ?>

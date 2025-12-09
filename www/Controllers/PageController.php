@@ -26,7 +26,9 @@ class PageController
         ];
 
         if($page->slugExists($data["slug"])){
-            die("slug existe déjà");
+            $_SESSION['errors'] = "Slug déjà existant veuillez en prendre un autre";
+            header('Location: /createPageForm'); 
+            exit();
         }
         $page->insert($data);
         $this->showPages();
@@ -84,7 +86,12 @@ class PageController
             "slug" => $_POST["slug"],
             "status" => $_POST["status"]
         ];
-
+        if($page->slugExists($data["slug"])){
+            $_SESSION['errors'] = "Slug déjà existant veuillez en prendre un autre";
+            $location = $_SERVER['HTTP_REFERER'];
+            header('Location:' . $location); 
+            exit();
+        }
         $pageModel->update($id, $data);
         header("Location: /showPages");
         exit;
