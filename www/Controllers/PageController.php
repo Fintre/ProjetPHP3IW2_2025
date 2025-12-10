@@ -16,22 +16,38 @@ class PageController
     }
 
     public function createPage(): void{
-        $page = new Page();
-        $data = [
-            "title"       => $_POST["title"],
-            "description" => $_POST["description"],
-            "slug"        => $_POST["slug"],
-            "user_id"     => $_SESSION["id"],          
-            "status"      => "draft",         
-        ];
+        if($_SERVER["REQUEST_METHOD"] == "POST"){
+            if(
+                    isset($_POST['title']) &&
+                    !empty($_POST['description']) &&
+                    !empty($_POST['slug']) &&
+                    !empty($_POST['pwdConfirm']) &&
+                    isset($_SESSION["id"]) &&
+                    count($_POST) == 4
+                ){
+            $page = new Page();
 
-        if($page->slugExists($data["slug"])){
-            $_SESSION['errors'] = "Slug déjà existant veuillez en prendre un autre";
-            header('Location: /createPageForm'); 
-            exit();
+            $data = [
+                "title"       => $_POST["title"],
+                "description" => $_POST["description"],
+                "slug"        => $_POST["slug"],
+                "user_id"     => $_SESSION["id"],          
+                "status"      => "draft",         
+            ];
+
+            if($page->slugExists($data["slug"])){
+                $_SESSION['errors'] = "Slug déjà existant veuillez en prendre un autre";
+                header('Location: /createPageForm'); 
+                exit();
+            }
+            $page->insert($data);
+            $this->showPages();
+            }else{
+                $_SESSION['errors'] = "T'es pas connecté ou bien t'essayes de cramer mon site :(((";
+                header('Location: /createPageForm');
+                exit();
+            }
         }
-        $page->insert($data);
-        $this->showPages();
     }
 
     public function showPages():void {

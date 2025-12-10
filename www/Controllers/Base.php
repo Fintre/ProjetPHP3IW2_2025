@@ -6,11 +6,13 @@ use App\Helper\Errors;
 
 class Base
 {
-    public function index($data): void
+    public function index($data = null): void
     {
 
         $render = new Render("home", "frontoffice");
-        $render->assign("name", $data["username"]);
+        if($data){
+            $render->assign("name", $data["username"]);
+        }
         $render->render();
     }
 
