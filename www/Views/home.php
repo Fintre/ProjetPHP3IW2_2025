@@ -2,7 +2,7 @@ Welcome home !!!
 Votre nom est : 
 
 <?php if(isset($name)): ?>
-    <?php $name ;?>
+    <?= htmlspecialchars($name) ;?>
 <?php else: ?>
     ANONYME INSCRIT TOI 
 <?php endif; ?>

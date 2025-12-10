@@ -8,7 +8,6 @@ class Base
 {
     public function index($data = null): void
     {
-
         $render = new Render("home", "frontoffice");
         if($data){
             $render->assign("name", $data["username"]);
